@@ -1,0 +1,19 @@
+---
+version: "2.1"
+services:
+  homer:
+    image: b4bz/homer
+    container_name: homer
+    environment:
+      #Use yours
+      - PUID=1000
+      - PGID=100
+      - UID=1000
+      - GID=100
+      - USER=Talha
+      - GROUP=users
+    volumes:
+      - ./config:/www/assets #Change drive
+    ports:
+      - 8080:8080
+    restart: unless-stopped

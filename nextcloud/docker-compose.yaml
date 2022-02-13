@@ -1,0 +1,47 @@
+version: '3'
+
+volumes:
+  nextcloud-data:
+  nextcloud-db:
+
+networks:
+  nextcloud-network:
+
+services:
+  nextcloud-app:
+    image: lscr.io/linuxserver/nextcloud
+    container_name: nextcloud
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - NEXTCLOUD_TRUSTED_DOMAINS=${CLOUD_DOMAIN}
+      - MYSQL_HOST=nextcloud-db
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    volumes:
+      - nextcloud-data:/config
+      - /Cloud:/data
+    ports:
+      - 6443:443
+    restart: unless-stopped
+    depends_on:
+      - mariadb
+
+  nextcloud-db:
+    image: lscr.io/linuxserver/mariadb
+    container_name: nextcloud-db
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - TZ=${TZ}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    volumes:
+      - nextcloud-mariadb:/config
+    restart: unless-stopped
+
+      

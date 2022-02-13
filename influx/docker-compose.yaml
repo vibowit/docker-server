@@ -1,0 +1,21 @@
+version: '3'
+
+volumes:
+  influxdb-data:
+    driver: local
+
+services:
+  influxdb:
+    image: influxdb:2.1-alpine
+    container_name: influxdb
+    volumes:
+      - influxdb-data:/var/lib/influxdb2:rw
+    ports:
+      - "8086:8086"
+    networks:
+      - influx-network
+    restart: unless-stopped
+
+networks:
+  influx-network:
+      external: true

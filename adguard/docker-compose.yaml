@@ -1,0 +1,21 @@
+version: '3'
+
+volumes:
+  adguard-data:
+  adguard-config:
+
+services:
+  adguardhome:
+    container_name: adguardhome
+    image: adguard/adguardhome:latest
+    restart: unless-stopped
+    volumes:
+      - adguard-data:/opt/adguardhome/work
+      - adguard-config:/opt/adguardhome/conf
+    networks:
+      macnet0:
+        ipv4_address: 192.168.0.9
+
+networks:
+  macnet0:
+    external: true

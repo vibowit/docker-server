@@ -1,0 +1,91 @@
+version: '3'
+
+volumes:
+  influxdb-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+networks:
+  smarthome-network:
+      external: true
+
+services:
+  homeassistant:
+    container_name: hass
+    image: homeassistant/home-assistant
+    volumes:
+      - /srv/smarthome/hass/config:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    network_mode: host
+    depends_on:
+      - mariadb
+      - mosquitto
+ 
+  hass-configurator:
+    image: "causticlab/hass-configurator-docker:arm"
+    container_name: hass-configurator
+    restart: unless-stopped
+    ports:
+      - "3218:3218/tcp"
+    depends_on:
+      - homeassistant
+    volumes:
+      - /srv/smarthome/hass/configurator-config:/config
+      - /srv/smarthome/hass/config:/hass-config
+
+  mosquitto:
+    image: eclipse-mosquitto
+    container_name: mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "1884:1884"
+    volumes:
+      - /srv/smarthome/mosquitto/config:/mosquitto/config
+      - /srv/smarthome/mosquitto/data:/mosquitto/data
+      - /srv/smarthome/mosquitto/log:/mosquitto/log
+    environment:
+      - TZ=Europe/Warsaw
+
+  mariadb:
+    image: mariadb:10
+    container_name: mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${HA_DATABASE}
+      MYSQL_USER: ${HA_MYSQL_USER}
+      MYSQL_PASSWORD: ${HA_MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    networks:
+      - smarthome-network
+
+  influxdb:
+    image: influxdb:2.1-alpine
+    container_name: influxdb
+    volumes:
+      - influxdb-data:/var/lib/influxdb2:rw
+    ports:
+      - "8086:8086"
+    networks:
+      - smarthome-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_AUTH_DISABLE_LOGIN=true
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - smarthome-network
+    restart: unless-stopped

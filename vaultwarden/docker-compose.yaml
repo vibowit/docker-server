@@ -1,0 +1,14 @@
+version: '3.4'
+services:
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    environment:
+      - ADMIN_TOKEN=${ADMIN_TOKEN}
+      - SIGNUPS_ALLOWED=${SIGNUPS_ALLOWED}
+    volumes:
+      - ./vw_data:/data
+    ports:
+      - 17881:80
+    restart: unless-stopped
+
